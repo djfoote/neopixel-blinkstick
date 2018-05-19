@@ -48,6 +48,26 @@ def cycle_images(neo, sleep_time=1):
       time.sleep(sleep_time)
 
 
+def cycle_letters(neo):
+  """To check font, cycle through all letters in the letters dict."""
+  while True:
+    for letter, bool_image in sorted(letters.letters.items()):
+      image = np.expand_dims(bool_image, 2).repeat(3, axis=2).astype(np.int)
+      neo.update(image)
+      time.sleep(0.5)
+
+
+def render_message(message, neo):
+  """Repeatedly display a message letter-by-letter."""
+  while True:
+    for letter in message:
+      bool_image = letters.letters[letter]
+      image = np.zeros_like(neo.grid)
+      image[np.where(bool_image)] = np.random.randint(20, size=(3,))
+      neo.update(image)
+      time.sleep(0.3)
+
+
 if __name__ == '__main__':
   filepath = os.path.join(PNGS_DIR, PNG_FILENAME)
   image = imageio.imread(filepath)
@@ -55,4 +75,6 @@ if __name__ == '__main__':
   neo = neopixel.Neopixel()
   
   # render_image(2, 0, neo)
-  cycle_images(neo)
+  # cycle_images(neo)
+  # cycle_letters(neo)
+  render_message('WHY   AM   I   HERE   ')
