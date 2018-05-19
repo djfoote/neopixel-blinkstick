@@ -68,6 +68,46 @@ def render_message(message, neo):
       time.sleep(0.3)
 
 
+def conway(neo):
+  """Plays Conway's Game of Life on the Neopixel, restarting on convergence."""
+  neo[:] = 0
+  conv_filter = np.full((3, 3), 1)
+  conv_filter[1, 1] = 0
+
+  def initialize():
+    state = np.random.randint(2, size=(8, 8, 1))
+    neo[:] = np.ones_like(neo[:]) * state
+    return state
+
+  def update_state(state):
+    sums = np.expand_dims(scipy.signal.convolve2d(
+        neo[:].any(axis=2).astype(np.uint8),
+        conv_filter,
+        mode='same'), -1)
+    off_pixels = (sums < 2) | (sums > 3)
+    on_pixels = state & (sums == 2)
+    on_pixels |= (sums == 3)
+    colors = np.random.randint(50, size=(8, 8, 3))
+    state = (state | on_pixels) & ~off_pixels
+    neo[:] = colors * state
+    return state
+
+  prev_states = [0] * 4
+  state = initialize()
+  while True:
+    prev_states.pop(0)
+    prev_states.append(state.copy())
+    state = update_state(state)
+    time.sleep(0.02)
+
+    for old_state in prev_states:
+      if (state == old_state).all():
+        for _ in xrange(50):
+          update_state(state)
+          time.sleep(0.02)
+        state = initialize()
+
+
 if __name__ == '__main__':
   filepath = os.path.join(PNGS_DIR, PNG_FILENAME)
   image = imageio.imread(filepath)
